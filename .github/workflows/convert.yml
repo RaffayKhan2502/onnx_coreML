@@ -1,6 +1,7 @@
 name: Convert ONNX to CoreML
 
 on:
+  workflow_dispatch:   # run manually from Actions tab
   push:
     paths:
       - "model.onnx"
@@ -18,7 +19,9 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
-        run: pip install coremltools onnx
+        run: |
+          python -m pip install --upgrade pip
+          pip install coremltools==7.2 onnx
 
       - name: Convert ONNX to CoreML
         run: |
@@ -26,9 +29,14 @@ jobs:
           import coremltools as ct
           import onnx
 
+          print("🔄 Loading ONNX model...")
           onnx_model = onnx.load("model.onnx")
+
+          print("🚀 Converting to CoreML...")
           mlmodel = ct.converters.onnx.convert(model=onnx_model)
+
           mlmodel.save("model.mlmodel")
+          print("✅ Saved: model.mlmodel")
           EOF
 
       - name: Upload CoreML artifact
