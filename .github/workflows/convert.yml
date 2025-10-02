@@ -1,0 +1,38 @@
+name: Convert ONNX to CoreML
+
+on:
+  push:
+    paths:
+      - "model.onnx"
+
+jobs:
+  convert:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install coremltools
+        run: pip install coremltools onnx
+
+      - name: Convert ONNX to CoreML
+        run: |
+          python - <<EOF
+          import coremltools as ct
+          import onnx
+
+          onnx_model = onnx.load("model.onnx")
+          mlmodel = ct.converters.onnx.convert(model=onnx_model)
+          mlmodel.save("model.mlmodel")
+          EOF
+
+      - name: Upload CoreML artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: coreml-model
+          path: model.mlmodel
